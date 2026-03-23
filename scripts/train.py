@@ -4,16 +4,14 @@ import yaml
 from sklearn.ensemble import RandomForestClassifier
 from pathlib import Path
 
-# TODO: Load parameters from params.yaml
-# Hint: look at how preprocess.py reads its parameters
+with open('params.yaml', 'r') as f:
+    params = yaml.safe_load(f)
 
-n_estimators = None  # TODO
-max_depth = None     # TODO
-random_state = None  # TODO
+n_estimators = params['train']['n_estimators']
+max_depth = params['train']['max_depth']
+random_state = params['train']['random_state']
 
-data_path = None     # TODO: path to the processed training data
-
-df = pd.read_csv(data_path)
+df = pd.read_csv('data/processed/train.csv')
 
 X_train = df.drop('target', axis=1)
 y_train = df['target']

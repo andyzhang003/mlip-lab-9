@@ -54,6 +54,8 @@ If it shows `/usr/bin/python3`, install Python via one of:
 
 If you're using a virtual environment (recommended), the venv's `python3` will not be SIP-protected.
 
+Alternatively, you can run this lab on Linux using your team's VM, where SIP is not an issue.
+
 ---
 
 ### A4: `roar run` — "Git repo has uncommitted changes"
@@ -146,11 +148,13 @@ metrics:
 
 **Cause**: Roar does not yet have native Windows support.
 
-**Fix**: Use WSL2:
+**Fix**: Use WSL2 or your team's VM:
 1. Open PowerShell as Administrator and run: `wsl --install`
 2. Restart your computer
 3. Open the Ubuntu terminal from the Start menu
 4. Do the entire lab inside WSL (clone, install, run everything there)
+
+Alternatively, you can run this lab on Linux using your team's VM, where Roar works natively.
 
 ---
 

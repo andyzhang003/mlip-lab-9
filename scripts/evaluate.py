@@ -14,14 +14,17 @@ y_test = df['target']
 
 y_pred = model.predict(X_test)
 
-# TODO: Calculate metrics using the imported sklearn functions
-accuracy = None   # TODO
-precision = None  # TODO
-recall = None     # TODO
-f1 = None         # TODO
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
 
-# TODO: Populate the metrics dictionary
-metrics = {}
+metrics = {
+    'accuracy': accuracy,
+    'precision': precision,
+    'recall': recall,
+    'f1': f1
+}
 
 Path('metrics').mkdir(exist_ok=True)
 with open('metrics/scores.json', 'w') as f:
