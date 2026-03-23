@@ -55,8 +55,8 @@ By using both on the same pipeline, you will understand not just how each tool w
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/kp10-x/mlip-dvc-lab-f25.git
-cd mlip-dvc-lab-f25
+git clone https://github.com/AshrithaG/mlip-lab-9.git
+cd mlip-lab-9
 ```
 
 2. Create and activate a virtual environment:
@@ -81,7 +81,7 @@ roar --version
 ### Explore the Repository
 
 ```
-mlip-dvc-lab-f25/
+mlip-lab-9/
 ├── data/raw/data.csv          # Breast Cancer Wisconsin dataset (569 samples, 30 features)
 ├── scripts/
 │   ├── preprocess.py          # Train/test split (complete — use as reference)
