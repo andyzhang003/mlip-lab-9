@@ -21,3 +21,5 @@ ENV/
 .dvc/tmp
 .roar/
 
+.archiver_shadow/
+.snapshots/
