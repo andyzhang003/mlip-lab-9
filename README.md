@@ -131,35 +131,45 @@ You have now used both tools on the same pipeline. Fill in the summary table and
 **Q1 — Setup and configuration**:
 Compare the setup effort for DVC vs. Roar. What did you have to configure explicitly for DVC that Roar handled automatically? What did DVC give you that Roar did not?
 
+**A1**: DVC required creating a `dvc.yaml` pipeline definition with explicit `deps` and `outs` for each stage, configuring a remote storage backend, and tracking data files with `dvc add`. Roar only needed `roar init` and then prefixing commands with `roar run` — no YAML, no remote config, no explicit dependency declarations. However, DVC gave us smart caching (skipping unchanged stages) and a formal experiment tracking interface (`dvc exp run`, `dvc exp show`) that Roar does not provide out of the box.
+
 **Q2 — The DAGs**:
 Look at both DAG outputs side by side. Do they show the same pipeline structure? Are there any differences in what each tool captured? Which was easier to understand?
+
+**A2**: Both DAGs show the same three-stage linear flow: preprocess → train → evaluate. The key difference is scope: DVC's `dvc dag` shows the static pipeline as declared in `dvc.yaml` — clean and easy to read. Roar's `roar dag` shows the full execution history, including all past runs, superseded outputs, and the augment step that was never in the DVC definition. Roar's DAG is more complete but more verbose. DVC's DAG is easier to understand for pipeline design; Roar's is more useful for auditing what actually happened.
 
 **Q3 — Handling changes**:
 When you changed a hyperparameter (DVC) or augmented the dataset (Roar), how did each tool respond? With DVC, what determined which stages re-ran? With Roar, who decided what to re-run?
 
+**A3**: With DVC, changing `n_estimators` in `params.yaml` caused only `train` and `evaluate` to re-run — `preprocess` was skipped because none of its declared dependencies changed. DVC determines which stages re-run by comparing content hashes of all declared `deps` against the `dvc.lock`. With Roar, there is no automatic re-run detection — the developer decides which commands to re-run. Roar simply records each run as a new job and links outputs by file hash, marking older outputs as superseded. DVC's model is more powerful for skipping unnecessary work; Roar's model is simpler and more flexible.
+
 **Q4 — Experiment tracking and comparison**:
 You ran multiple experiments with both DVC and Roar. How did you find and compare results across runs in each tool? How can you trace back which data version and which parameters produced a specific model? Which tool made this easier?
 
+**A4**: With DVC, `dvc exp show` provides a formatted table comparing all experiments side-by-side: parameters, metrics, and artifact hashes in one view. You can trace back to the exact data and params used in any experiment. With Roar, you use `roar show @N` to inspect individual jobs, but there is no built-in comparison table — you have to inspect each run separately and compare manually. For experiment comparison, DVC is clearly easier. For tracing artifact lineage (what data+code produced this exact model file), Roar is more powerful via GLaaS lookup by content hash.
+
 **Q5 — Team collaboration**:
-Imagine a new teammate joins your project next month. With DVC, they can read `dvc.yaml` in the Git repo. With Roar, they can look up artifact lineage on GLaaS. Which gives a clearer picture of the pipeline? Could you use both tools together — and if so, how?
+Imagine a new teammate joins your project next month. With DVC, they can read `dvc.yaml` in the Git repo. With Roar, they can look up artifact lineage on GLaaS. Which gives a clearer picture of the pipeline?
+
+**A5**: For understanding the pipeline structure, DVC's `dvc.yaml` is clearer — it is explicit, human-readable, and versioned in Git alongside the code. A new teammate can immediately see all stages and dependencies. Roar's GLaaS lineage is better for auditing a specific artifact — they can look up a model file's hash and see exactly what data, code, and environment produced it, even months later. Both tools are complementary: you could use DVC to define and run your pipeline reproducibly, while using Roar (or DVC's push to remote) to make specific model artifacts globally discoverable by hash.
 
 **Q6 — Your project**:
 For your team's course project, which approach (or combination) would be more useful? Consider your data sources, pipeline complexity, and how your team collaborates.
 
-### Summary Table
+**A6**: For a course project with a moderate-complexity ML pipeline and a small team, DVC is likely more useful as the primary tool. The explicit `dvc.yaml` makes the pipeline self-documenting, `dvc repro` ensures reproducibility for teammates, and `dvc exp show` makes it easy to compare model runs. Roar would be a valuable complement for artifact lineage — registering final model versions on GLaaS so any stakeholder can trace exactly what data and code produced a given model. If the data is large or changes frequently, DVC's data versioning becomes essential. If the pipeline is exploratory and changes rapidly, Roar's zero-config approach reduces friction during development.
 
-Fill in the following table based on your experience (replace the blanks):
+### Summary Table
 
 | | DVC | Roar |
 |---|---|---|
-| **Philosophy** | ____________ | ____________ |
-| **Config required** | ____________ | ____________ |
-| **How is the DAG defined?** | ____________ | ____________ |
-| **What happens on re-run?** | ____________ | ____________ |
-| **How are artifacts versioned?** | ____________ | ____________ |
-| **Reproducibility mechanism** | ____________ | ____________ |
-| **Collaboration model** | ____________ | ____________ |
-| **Platform support** | ____________ | ____________ |
+| **Philosophy** | Declarative — you explicitly define pipeline stages, dependencies, and outputs in `dvc.yaml` before running | Observational — no config needed; Roar intercepts file I/O at runtime and infers the DAG automatically |
+| **Config required** | Yes — `dvc.yaml` (pipeline stages), `params.yaml` (hyperparameters), DVC remote configuration | Minimal — only `roar init`; no pipeline YAML needed; params tracked implicitly via file reads |
+| **How is the DAG defined?** | Manually authored in `dvc.yaml` with explicit `deps` and `outs` for each stage | Automatically inferred by observing which files each process reads and writes during execution |
+| **What happens on re-run?** | DVC checks content hashes of all dependencies; only stages with changed inputs are re-executed (smart caching) | All stages are re-run by default; Roar records each run as a new job and marks prior outputs as superseded |
+| **How are artifacts versioned?** | Files tracked in `.dvc` files (content-addressed cache); `dvc.lock` records exact hashes for reproducibility | Each run's inputs/outputs are hashed and stored in a local SQLite DB; artifacts can be published to GLaaS by hash |
+| **Reproducibility mechanism** | `dvc repro` replays the exact pipeline defined in `dvc.yaml` using cached outputs when possible | `roar reproduce <hash>` replays the job chain that produced a given artifact hash |
+| **Collaboration model** | Pipeline definition lives in Git (`dvc.yaml`, `dvc.lock`); data/models shared via DVC remote storage (S3, GCS, local) | Lineage published to GLaaS (cloud); teammates look up artifacts by content hash; no shared config files needed |
+| **Platform support** | Works natively on macOS, Linux, Windows; broad remote storage support (S3, GCS, Azure, SSH, etc.) | Works on macOS and Linux natively; Windows requires WSL2; cloud lineage via GLaaS |
 
 
 ## Resources
